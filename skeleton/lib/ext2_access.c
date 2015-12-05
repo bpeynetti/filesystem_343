@@ -161,8 +161,6 @@ __u32 get_inode_from_dir(void * fs, struct ext2_inode * dir,
 }
 
 
-
-
 // Find the inode number for a file by its full path.
 // This is the functionality that ext2cat ultimately needs.
 __u32 get_inode_by_path(void * fs, char * path) {
@@ -172,12 +170,10 @@ __u32 get_inode_by_path(void * fs, char * path) {
     for (char * slash = path; slash != NULL; slash = strchr(slash + 1, '/')) {
         num_slashes++;
     }
-    //how many parts do we have? put in array
-
     char ** parts = split_path(path);
     
     //now we go through each path (go into the directory)
-     
+    
     struct ext2_inode * currentDir = get_root_dir(fs);
     __u32 iNodeNumber;
     
