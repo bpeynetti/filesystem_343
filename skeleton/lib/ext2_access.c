@@ -62,7 +62,19 @@ struct ext2_group_desc * get_block_group(void * fs, __u32 block_group_num) {
 // first one.
 struct ext2_inode * get_inode(void * fs, __u32 inode_num) {
     // FIXME: Uses reference implementation.
-    return _ref_get_inode(fs, inode_num);
+    
+    //get to the block group 
+    struct ext2_group_desc * blockGroup = get_block_group(fs,(__u32) 0 );
+    
+    //get to the itable
+    struct ext2_inode* iNodeTablePtr = (struct ext2_inode*) (get_block(fs,(blockGroup->bg_inode_table)));
+    
+    struct ext2_inode* iNodePtr = iNodeTablePtr + inode_num-1;
+    return iNodePtr;
+    
+    //get to the inode_num element = inode_num*
+    
+    //return _ref_get_inode(fs, inode_num);
 }
 
 
@@ -114,7 +126,38 @@ struct ext2_inode * get_root_dir(void * fs) {
 __u32 get_inode_from_dir(void * fs, struct ext2_inode * dir, 
         char * name) {
     // FIXME: Uses reference implementation.
-    return _ref_get_inode_from_dir(fs, dir, name);
+    
+    //first, go through all the data blocks 
+        //for each data block:
+        //  while (ptr<(block+blockSize):
+        //      if find name, return True, 
+        //      else, find size and ptr + size of that struct
+        //return False
+        
+    struct ext2_dir_entry* firstEntry = (struct ext2_dir_entry*) (get_block(fs,dir->i_block[0]));
+    
+    struct ext2_dir_entry* current = firstEntry;
+    //while ((__u32)(current - firstEntry) < (__u32)(dir->i_size))
+    while (current->inode!=0)
+    {
+        //strcmp of name and input
+        if (strncmp(current->name,name,strlen(name))==0)
+        {
+            return current->inode;
+        }
+        else
+        {
+            current = (struct ext2_dir_entry*) ((char*)(current) + (current->rec_len));
+        }
+        //if yes, return inode number
+        //else, go to next one (plus size)
+        
+    }
+    //return 0
+    return 0;
+    
+    
+    //return _ref_get_inode_from_dir(fs, dir, name);
 }
 
 
