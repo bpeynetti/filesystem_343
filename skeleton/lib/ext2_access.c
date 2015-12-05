@@ -165,6 +165,43 @@ __u32 get_inode_from_dir(void * fs, struct ext2_inode * dir,
 // This is the functionality that ext2cat ultimately needs.
 __u32 get_inode_by_path(void * fs, char * path) {
     // FIXME: Uses reference implementation.
-    return _ref_get_inode_by_path(fs, path);
+    
+    int num_slashes = 0;
+    for (char * slash = path; slash != NULL; slash = strchr(slash + 1, '/')) {
+        num_slashes++;
+    }
+    char ** parts = split_path(path);
+    
+    //now we go through each path (go into the directory)
+    
+    struct ext2_inode * currentDir = get_root_dir(fs);
+    __u32 iNodeNumber;
+    
+    int i;
+    for (i=0;i<num_slashes;i++)
+    {
+        //find the file (or directory at that level)
+        iNodeNumber = get_inode_from_dir(fs,currentDir,parts[i]);
+        
+        if (iNodeNumber==0)
+        {
+            return 0;
+        }
+        
+        //otherwise, currentDir = get_inode
+        if (i<(num_slashes-1))
+        {
+            currentDir = get_inode(fs,iNodeNumber);
+        }
+    }
+    
+    return iNodeNumber;
+    
+    
+    
+    
+    
+    
+    //return _ref_get_inode_by_path(fs, path);
 }
 
