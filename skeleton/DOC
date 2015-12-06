@@ -1,0 +1,72 @@
+---------------
+REPORT - FILE SYSTEM - PROJECT 4
+
+Bruno Peynetti Velazquez - bpv512
+Jacob Kobza - jjk613
+
+EECS 343 - Operating Systems 
+
+---------------------
+
+In order to implement this filesystem, we did the following:
+
+Full Credit:
+
+1. get_super_block 
+	simply offset the file system by the SUPERBLOCK_OFFSET
+
+2. get_block_size  
+	just return  EXT2_BLOCK_SIZE(get_super_block(fs)) 
+
+3. get_block 
+	just figure out the offset
+	the offset is the block number * size of the block for that file system
+	add to offset fs
+
+4. get_block_group
+	it's the first block after the superblock, so figure out the superblock and + SUPERBLOCK_SIZE
+
+5. get_inode
+	first get the block group
+	then figure out where the inode table is (with a pointer)
+	then just move as many elements as you need (in the array)
+	inode_num is 1-indexed but the array is 0-indexed
+
+6. get_inode_from_dir
+	searches for the correct inode through directories (recursively)
+	given as an input an inode for a directory
+
+	first, figure out the first entry for that (at the first data block)
+	then, just step through the directory entries one by one
+
+		if you find the correct name (by file or directory) then return that
+
+		the while loop will end when the inode is 0, which is the default for end of directory entries
+
+7. get_inode_by_path
+
+	this figures out the path, and calls get_inode_from_dir each path until find the path
+	first use split_path to split the path into an array of either directories or file names (by '/')
+
+	then for each step (each level in directory) just get the corresponding inode number
+	and the last one will be the inode number to the actual file, so just return that
+
+-----
+
+EXTRA CREDIT
+
+modified ext2cat.c
+
+first, it performs exactly how it performs for a file without indirected blocks
+
+After, we check if the number of bytes left is >0. If not, then we're done
+If yes, then we have to look at the indirect block. 
+	Now, figure out what's the indirect block position with a pointer
+	this is an array, so we will go through the array as follows:
+		while the difference in the pointer of the next block - the pointer for indirect block is smaller than the size of the block
+			(basically, limit the array to the block)
+			if you read enough bytes already, stop
+			if you haven't, get the min(blockSize,bytes_left) and copy those to the buffer
+			step to the next element in the array
+
+

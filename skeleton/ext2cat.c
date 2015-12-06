@@ -43,24 +43,29 @@ int main(int argc, char ** argv) {
 
     //if size is larger than what we need, then 
     bytes_left = size - bytes_read;
-    printf("Bytes left: %d \n",bytes_left);
+    //printf("Bytes left: %d \n",bytes_left);
     if (bytes_left>0)
     {
         //find the indirect block
-        __u32* indirect_block = get_block(fs, target_ino->i_block[EXT2_IND_BLOCK]);
-        //now there's an array of stuff
+        void* indirect_block = get_block(fs, target_ino->i_block[EXT2_IND_BLOCK]);
+        //now there's an array of stuff at the position of indirect block
         __u32 * next_block = (__u32*)indirect_block;
-
-        for (int j=0; j<256; j++)
+        //the first one is at next_block right now
+        int flag = 0;
+        while ((__u32)(get_block_size(fs)) > (__u32)( (void*)next_block - indirect_block) )
         {
-            next_block = (__u32*)((char*)next_block + (sizeof(__u32)));
-            if (bytes_left==0) break;
-            __u32 bytes_to_read = bytes_left > block_size ? block_size : bytes_left;
+            if (bytes_read >= size)
+            { break;}
+            else
+            {
+                bytes_left = size - bytes_read;
+                __u32 bytes_to_read = bytes_left > block_size ? block_size : bytes_left;
+                void* block = get_block(fs,*next_block);
+                memcpy(buf+bytes_read, block, bytes_to_read);
+                bytes_read += bytes_to_read;
+                next_block++;
 
-            void * block = get_block(fs, *next_block);
-            memcpy(buf + bytes_read,block,bytes_to_read);
-            bytes_read += bytes_to_read;
-            bytes_left = size - bytes_read;
+            }
         }
     }
 
